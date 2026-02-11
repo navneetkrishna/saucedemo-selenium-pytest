@@ -16,7 +16,7 @@ def base_url(pytestconfig):
 
 
 # modify scope to "session" if there is just one test suite
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def driver(pytestconfig, base_url):
     browser_name = pytestconfig.getoption("browser").lower()
 
@@ -37,17 +37,17 @@ def driver(pytestconfig, base_url):
     driver.quit()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def login_page(driver):
     return LoginPage(driver)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def home_page(driver):
     return HomePage(driver)
 
 
-@pytest.fixture(scope='function', autouse=True)
+@pytest.fixture(scope='function')
 def app_login(driver, login_page):
     username = "standard_user"
     password = "secret_sauce"
