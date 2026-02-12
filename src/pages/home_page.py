@@ -8,6 +8,8 @@ class HomePage(BasePage):
     PAGE_TITLE = (By.CLASS_NAME, "app_logo")
     CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
     FILTER_DROPDOWN = (By.CLASS_NAME, "product_sort_container")
+    NAVIGATION_MENU = (By.ID, "react-burger-menu-btn")
+    LOGOUT_BTN = (By.ID, "logout_sidebar_link")
 
     def get_page_logo_text(self):
         return self.ele_text(*self.PAGE_TITLE)
