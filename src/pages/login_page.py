@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from src.pages.home_page import HomePage
-from src.utils.wait import presence_located, wait_clickable
+from src.utils.waits import presence_located, wait_clickable
 
 
 
@@ -14,12 +14,11 @@ class LoginPage(BasePage):
     LOGIN_FAIL_ERROR = (By.CSS_SELECTOR, ".error-message-container.error")
     ERROR_MESSAGE = (By.XPATH, "//h3[@data-test= 'error']")
 
-    # username = "standard_user"
-    # password = "secret_sauce"
 
     def is_logged_in(self):
         # to validate login, verify that the navigation icon is available
         return self.ele_exists(HomePage.NAVIGATION_MENU)
+
 
     def login(self, username="standard_user", password="secret_sauce"):
         if self.is_logged_in():
@@ -48,21 +47,24 @@ class LoginPage(BasePage):
             # 3. Neither happened within 5 seconds (e.g., app crashed or slow network)
             return "TIMEOUT"
 
+
     def get_error_message(self):
         """Helper to verify WHY the login failed"""
-        if self.ele_exists(self.LOGIN_FAIL_ERROR):
-            return self.driver.find_element(*self.ERROR_MESSAGE).text
+        error_el = self.ele_visible(*self.LOGIN_FAIL_ERROR)
+        if error_el:
+            return error_el.text
+
         return ""
 
 
-        def log_out(self):
+    def log_out(self):
 
         if not self.is_logged_in():
             return True
 
         try:
 
-            presence_located(self.driver, HomePage.NAVIGATION_MENU).click()
+            wait_clickable(self.driver, HomePage.NAVIGATION_MENU).click()
             wait_clickable(self.driver, HomePage.LOGOUT_BTN).click()
 
             # 1. Wait for EITHER the LOGIN PAGE OR the NAVIGATION MENU
@@ -73,9 +75,12 @@ class LoginPage(BasePage):
                 )
             )
 
+            # success if Login button is found
             return self.ele_exists(self.LOGIN_BTN)
 
         except Exception as e:
             # 3. Neither happened within 5 seconds (e.g., app crashed or slow network)
             print(e)
             return False
+
+

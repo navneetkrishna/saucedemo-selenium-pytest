@@ -44,8 +44,7 @@ class BasePage:
 
     def ele_visible(self, by, selector):
         try:
-            wait_visible(self.driver, (by, selector), timeout=5)
-            return True
+            return wait_visible(self.driver, (by, selector), timeout=5)
 
         except TimeoutException:
             self.driver.save_screenshot(f"fail_{selector}.png")
@@ -54,10 +53,13 @@ class BasePage:
     def ele_exists(self, selector):
 
         try:
-            el = self.driver.find_element(*selector)
-            return el
+            return self.driver.find_element(*selector)
 
         except NoSuchElementException:
             self.driver.save_screenshot(f"fail_{selector}.png")
             # raise Exception(f"Failed to find element with locator: ({by}, {selector}) within timeout.")
             return False
+
+
+    def navigate_url(self, url):
+        return self.driver.get(url)
