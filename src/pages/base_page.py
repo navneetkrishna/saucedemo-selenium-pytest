@@ -60,6 +60,5 @@ class BasePage:
             # raise Exception(f"Failed to find element with locator: ({by}, {selector}) within timeout.")
             return False
 
-
     def navigate_url(self, url):
         return self.driver.get(url)

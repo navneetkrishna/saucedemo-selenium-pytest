@@ -82,5 +82,3 @@ class LoginPage(BasePage):
             # 3. Neither happened within 5 seconds (e.g., app crashed or slow network)
             print(e)
             return False
-
-
