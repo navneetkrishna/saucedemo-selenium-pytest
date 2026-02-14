@@ -60,5 +60,15 @@ class BasePage:
             # raise Exception(f"Failed to find element with locator: ({by}, {selector}) within timeout.")
             return False
 
+    def elements_exists(self, selector):
+
+        try:
+            return self.driver.find_elements(*selector)
+
+        except NoSuchElementException:
+            self.driver.save_screenshot(f"fail_{selector}.png")
+            # raise Exception(f"Failed to find element with locator: ({by}, {selector}) within timeout.")
+            return False
+
     def navigate_url(self, url):
         return self.driver.get(url)

@@ -1,12 +1,13 @@
-# def test_is_login(driver, login_page, app_login):
-#     login_page.login()
-#
+import pytest
 
-def test_app_logo_text(driver, home_page, app_login):
-    app_txt = home_page.get_page_logo_text()
-    # print(app_txt)
-    assert app_txt == "Swag Labs"
+pytestmark = pytest.mark.demo
 
 
-def test_click_cart(driver, home_page, app_login):
-    home_page.click_cart()
+def test_inv_001(home_page, login_page, app_login):
+
+    assert home_page.get_page_logo_text() == "Swag Labs", "App logo text missing or did not match."
+    assert home_page.get_product_title() == "Products", "Inventory page title missing or did not match."
+    assert home_page.get_inventory_count() == 6, "Inventory page did not contain 6 items."
+    assert home_page.cart_exists(), "Could not locate cart."
+    assert home_page.filter_exists(), "Could not locate filter dropdown."
+    assert home_page.all_products_have_images(), "One or more products did not contain images."

@@ -6,7 +6,6 @@ from src.pages.home_page import HomePage
 from src.utils.waits import presence_located, wait_clickable
 
 
-
 class LoginPage(BasePage):
     USERNAME_BOX = (By.ID, "user-name")
     PASSWORD_BOX = (By.ID, "password")
