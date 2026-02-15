@@ -2,7 +2,7 @@ from src.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from src.pages.home_page import HomePage
+from src.pages.inventory_page import InventoryPage
 from src.utils.waits import presence_located, wait_clickable
 
 
@@ -16,7 +16,7 @@ class LoginPage(BasePage):
 
     def is_logged_in(self):
         # to validate login, verify that the navigation icon is available
-        return self.ele_exists(HomePage.NAVIGATION_MENU)
+        return self.ele_exists(InventoryPage.NAVIGATION_MENU)
 
 
     def login(self, username="standard_user", password="secret_sauce"):
@@ -33,12 +33,12 @@ class LoginPage(BasePage):
             WebDriverWait(self.driver, 5).until(
                 EC.any_of(
                     EC.visibility_of_element_located(self.LOGIN_FAIL_ERROR),
-                    EC.visibility_of_element_located(HomePage.NAVIGATION_MENU)
+                    EC.visibility_of_element_located(InventoryPage.NAVIGATION_MENU)
                     # EC.url_contains("inventory.html")
                 )
             )
             # 2. Check which condition actually happened
-            if self.ele_exists(HomePage.NAVIGATION_MENU):
+            if self.ele_exists(InventoryPage.NAVIGATION_MENU):
                 return "Success"
             return "False"
 
@@ -63,14 +63,14 @@ class LoginPage(BasePage):
 
         try:
 
-            wait_clickable(self.driver, HomePage.NAVIGATION_MENU).click()
-            wait_clickable(self.driver, HomePage.LOGOUT_BTN).click()
+            wait_clickable(self.driver, InventoryPage.NAVIGATION_MENU).click()
+            wait_clickable(self.driver, InventoryPage.LOGOUT_BTN).click()
 
             # 1. Wait for EITHER the LOGIN PAGE OR the NAVIGATION MENU
             WebDriverWait(self.driver, 5).until(
                 EC.any_of(
                     EC.visibility_of_element_located(self.LOGIN_BTN),
-                    EC.visibility_of_element_located(HomePage.NAVIGATION_MENU)
+                    EC.visibility_of_element_located(InventoryPage.NAVIGATION_MENU)
                 )
             )
 

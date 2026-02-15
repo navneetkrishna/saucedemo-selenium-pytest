@@ -7,7 +7,7 @@ class TestLogin:
 
     @pytest.mark.smoke
     @pytest.mark.regression
-    def test_auth_001(self, login_page, home_page):
+    def test_auth_001(self, login_page, inventory_page):
         """Login with valid credentials
         Verify App Logo text"""
         username = 'standard_user'
@@ -15,11 +15,11 @@ class TestLogin:
 
         login_page.login(username, password)
 
-        assert home_page.get_page_logo_text() == "Swag Labs", f"Login failed using {username}"
+        assert inventory_page.get_page_logo_text() == "Swag Labs", f"Login failed using {username}"
 
     @pytest.mark.negative
     @pytest.mark.regression
-    def test_auth_002(self, login_page, home_page):
+    def test_auth_002(self, login_page, inventory_page):
         """Login with incorrect credentials
             validate error message
         """
@@ -57,7 +57,7 @@ class TestLogin:
 
     @pytest.mark.negative
     @pytest.mark.regression
-    def test_auth_005(self, login_page, home_page):
+    def test_auth_005(self, login_page, inventory_page):
         """Login with locked out user credentials"""
 
         username = 'locked_out_user'

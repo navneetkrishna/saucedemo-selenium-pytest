@@ -3,11 +3,6 @@ import pytest
 pytestmark = pytest.mark.demo
 
 
-def test_inv_001(home_page, login_page, app_login):
-
-    assert home_page.get_page_logo_text() == "Swag Labs", "App logo text missing or did not match."
-    assert home_page.get_product_title() == "Products", "Inventory page title missing or did not match."
-    assert home_page.get_inventory_count() == 6, "Inventory page did not contain 6 items."
-    assert home_page.cart_exists(), "Could not locate cart."
-    assert home_page.filter_exists(), "Could not locate filter dropdown."
-    assert home_page.all_products_have_images(), "One or more products did not contain images."
+def test_inv_002(inventory_page, app_login):
+    assert inventory_page.all_products_have_names(), "One or more products have invalid name"
+    assert inventory_page.all_products_have_prices(), "One or more products have invalid price"

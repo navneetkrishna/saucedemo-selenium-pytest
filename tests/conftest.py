@@ -1,7 +1,7 @@
 import pytest
 from selenium import webdriver
 from src.pages.login_page import LoginPage
-from src.pages.home_page import HomePage
+from src.pages.inventory_page import InventoryPage
 
 
 def pytest_addoption(parser):
@@ -43,8 +43,8 @@ def login_page(driver):
 
 
 @pytest.fixture(scope='module')
-def home_page(driver):
-    return HomePage(driver)
+def inventory_page(driver):
+    return InventoryPage(driver)
 
 
 @pytest.fixture(scope='function')
