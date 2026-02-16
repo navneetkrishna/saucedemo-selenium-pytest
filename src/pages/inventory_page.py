@@ -1,7 +1,10 @@
+import time
 from typing import Literal
 from src.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 import re
+
+from src.utils.waits import wait_clickable
 
 
 class InventoryPage(BasePage):
@@ -15,11 +18,10 @@ class InventoryPage(BasePage):
 
     # INVENTORIES
     INVENTORY_ITEMS = (By.CLASS_NAME, "inventory_item")
-    INVENTORY_IMGS = (By.XPATH, "//img[@class='inventory_item_img']")
+    INVENTORY_IMGS = (By.XPATH, ".//img[@class='inventory_item_img']")
     INVENTORY_NAMES = (By.CLASS_NAME, "inventory_item_name")
     INVENTORY_PRICE = (By.CLASS_NAME, "inventory_item_price")
-    # INVENTORY_ADDTOCART = (By.ID, "add-to-cart-sauce-labs-backpack")
-    INVENTORY_ADDTOCART = (By.XPATH, "//button[contains(@id, 'add-to-cart') or contains(@id, 'remove')]")
+    INVENTORY_ADDTOCART = (By.XPATH, ".//button[contains(@id, 'add-to-cart') or contains(@id, 'remove')]")
 
 
     def get_page_logo_text(self):
@@ -147,9 +149,15 @@ class InventoryPage(BasePage):
     def add_to_cart_button_toggle_works(self):
 
         """
-            Validates that each inventory item has a visibleadd to cart option.
+            Validates that each inventory item has a visible add to cart option.
             Note:
             - Uses scoped search (element.find_element) within each inventory item.
+            OR
+                -  # Wait for Add / Remove state
+                    WebDriverWait(self.driver, 5)
+                        .until(lambda d: item.find_element(*self.INVENTORY_ADDTOCART).text.strip() == "Remove"
+        )
+            - Refetches the Add To Cart/Remove button, to avoid stale element exception
             """
 
         items = self.elements_exists(self.INVENTORY_ITEMS)
@@ -158,20 +166,28 @@ class InventoryPage(BasePage):
             return False
 
         for item in items:
-            button = item.find_element(By.TAG_NAME, "button")
+            button = item.find_element(*self.INVENTORY_ADDTOCART)
+            wait_clickable(self.driver, button)
 
             # Initial state
             if button.text.strip() != "Add to cart":
                 return False
-
             # Click → should change to Remove
             button.click()
-            if button.text.strip() != "Remove":
-                return False
 
+            # refetch the button
+            remove_button = item.find_element(*self.INVENTORY_ADDTOCART)
+            if remove_button.text.strip() != "Remove":
+                return False
             # Click again → should revert back
-            button.click()
-            if button.text.strip() != "Add to cart":
+            wait_clickable(self.driver, remove_button)
+            remove_button.click()
+
+
+            # refetch the button
+            add_button = item.find_element(*self.INVENTORY_ADDTOCART)
+            wait_clickable(self.driver, add_button)
+            if add_button.text.strip() != "Add to cart":
                 return False
 
         return True
