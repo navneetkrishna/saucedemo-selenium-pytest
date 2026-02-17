@@ -1,9 +1,7 @@
-import time
 from typing import Literal
 from src.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 import re
-
 from src.utils.waits import wait_clickable
 
 
@@ -80,7 +78,13 @@ class InventoryPage(BasePage):
 
         for item in items:
             # item scope image search
-            image = item.find_element(*self.INVENTORY_IMGS)
+            # image = item.find_element(*self.INVENTORY_IMGS)
+            
+            # Pass the parent_ele 'item' instead of 'driver' to restrict XPath scope to .//
+                # - Passing item means the wait will pass that same item as the argument to your callable each poll.
+            # Must ignore NoSuchElementException to prevent immediate crash if element isn't present yet
+            image = WebDriverWait(item, 5, ignored_exceptions=[NoSuchElementException]).until(
+                lambda i: i.find_element(*self.INVENTORY_IMGS).is_displayed() and i.find_element(*self.INVENTORY_IMGS))
 
             if not image.is_displayed():
                 return False
@@ -167,7 +171,6 @@ class InventoryPage(BasePage):
 
         for item in items:
             button = item.find_element(*self.INVENTORY_ADDTOCART)
-            wait_clickable(self.driver, button)
 
             # Initial state
             if button.text.strip() != "Add to cart":
@@ -180,13 +183,11 @@ class InventoryPage(BasePage):
             if remove_button.text.strip() != "Remove":
                 return False
             # Click again → should revert back
-            wait_clickable(self.driver, remove_button)
             remove_button.click()
 
 
             # refetch the button
             add_button = item.find_element(*self.INVENTORY_ADDTOCART)
-            wait_clickable(self.driver, add_button)
             if add_button.text.strip() != "Add to cart":
                 return False
 
