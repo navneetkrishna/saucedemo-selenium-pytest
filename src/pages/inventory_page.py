@@ -1,4 +1,6 @@
 from typing import Literal
+from selenium.common.exceptions import *
+from selenium.webdriver.support.wait import WebDriverWait
 from src.pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 import re
