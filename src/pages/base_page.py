@@ -72,3 +72,16 @@ class BasePage:
 
     def navigate_url(self, url):
         return self.driver.get(url)
+
+    
+    def dropdowns(self, selector):
+        try:
+            # global wait for the dropdown to be visible
+            el = wait_visible(self.driver, selector)
+            return Select(el)
+
+        except TimeoutException:
+            # selector[1] gets the actual string
+            self.driver.save_screenshot(f"fail_{selector[1]}.png")
+            raise Exception(f"Dropdown not found: {selector}")
+            
