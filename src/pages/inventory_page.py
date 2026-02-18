@@ -194,3 +194,10 @@ class InventoryPage(BasePage):
                 return False
 
         return True
+
+
+    def default_filter(self):
+        # Returns the default filter object or raises the Exception from base_page
+        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
+        return dropdown.first_selected_option.text
+    
