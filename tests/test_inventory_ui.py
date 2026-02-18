@@ -29,5 +29,5 @@ class TestInventoryUI:
     @pytest.mark.smoke
     @pytest.mark.regression
     @pytest.mark.ui
-    def test_inv_003(inventory_page, app_login):
+    def test_inv_003(self, inventory_page, app_login):
         assert inventory_page.default_filter() == "Name (A to Z)", "Default filter failed"
