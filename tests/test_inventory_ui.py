@@ -24,3 +24,10 @@ class TestInventoryUI:
         assert inventory_page.all_products_have_names(), "One or more products have invalid name"
         assert inventory_page.all_products_have_prices(), "One or more products have invalid price"
         assert inventory_page.add_to_cart_button_toggle_works(), "Add to cart button toggle failed"
+
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    @pytest.mark.ui
+    def test_inv_003(inventory_page, app_login):
+        assert inventory_page.default_filter() == "Name (A to Z)", "Default filter failed"
