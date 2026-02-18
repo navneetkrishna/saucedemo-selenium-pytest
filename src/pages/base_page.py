@@ -1,5 +1,5 @@
 from selenium.common.exceptions import *
-
+from selenium.webdriver.support.select import Select
 from src.utils.waits import *
 
 
