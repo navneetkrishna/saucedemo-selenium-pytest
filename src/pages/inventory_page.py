@@ -31,17 +31,34 @@ class InventoryPage(BasePage):
     def click_cart(self):
         self.click(*self.CART_LINK)
 
-
     def apply_filter(self, short_filter: Literal["a_z", "z_a", "l_h", "h_l"] = "a_z"):
         """used typing.Literal lib to show method param suggestion
-            filter: a_z -> A to Z
-                    z_a -> Z to A
-                    l_h -> Low to High
-                    h_l -> High ti Low
+            filter: a_z -> Name (A to Z)
+                    z_a -> Name (Z to A)
+                    l_h -> Price (low to high)
+                    h_l -> Price (high to low)
 
                 default: A to Z
         """
-        pass
+
+        # 1. Map shorthand codes to the EXACT visible text in the UI
+        filter_map = {
+            "a_z": "Name (A to Z)",
+            "z_a": "Name (Z to A)",
+            "l_h": "Price (low to high)",
+            "h_l": "Price (high to low)"
+        }
+
+        # 2. Get the Select object from your base_page method
+        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
+
+        # 3. Validation
+        target_text = filter_map.get(short_filter.lower())
+        if not target_text:
+            raise ValueError(f"Invalid filter key: {short_filter}. Use: {list(filter_map.keys())}")
+
+            # 4. Perform the action
+        dropdown.select_by_visible_text(target_text)
 
     def get_inventory_items(self):
         return self.elements_exists(self.INVENTORY_ITEMS)
@@ -196,7 +213,7 @@ class InventoryPage(BasePage):
         return True
 
 
-    def default_filter(self):
+    def current_filter(self):
         # Returns the default filter object or raises the Exception from base_page
         dropdown = self.dropdowns(self.FILTER_DROPDOWN)
         return dropdown.first_selected_option.text
