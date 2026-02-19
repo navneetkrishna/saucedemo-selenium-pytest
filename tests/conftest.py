@@ -1,5 +1,6 @@
 import pytest
 from selenium import webdriver
+from src.pages.cart_page import CartPage
 from src.pages.login_page import LoginPage
 from src.pages.inventory_page import InventoryPage
 
@@ -45,6 +46,11 @@ def login_page(driver):
 @pytest.fixture(scope='module')
 def inventory_page(driver):
     return InventoryPage(driver)
+
+
+@pytest.fixture(scope='module')
+def cart_page(driver):
+    return CartPage(driver)
 
 
 @pytest.fixture(scope='function')
