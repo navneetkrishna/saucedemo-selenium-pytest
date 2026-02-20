@@ -217,4 +217,28 @@ class InventoryPage(BasePage):
         # Returns the default filter object or raises the Exception from base_page
         dropdown = self.dropdowns(self.FILTER_DROPDOWN)
         return dropdown.first_selected_option.text
-    
+
+
+    def add_item_to_cart(self, item_name):
+        """Searches for an item by name and adds it to the cart using Case-Insensitive Regex."""
+        items = self.get_inventory_items()
+
+        # Create a case-insensitive regex pattern
+        # re.escape handles special characters in item_name safely
+        pattern = re.compile(re.escape(item_name), re.IGNORECASE)
+
+        for item in items:
+            # 1. Get the name of the current item
+            name_element = item.find_element(*self.INVENTORY_NAMES)
+            actual_name = name_element.text
+
+            # 2. Use regex for a flexible, case-insensitive match
+            if pattern.search(actual_name):
+                # 3. Locate and click the button specifically for THIS item
+                add_button = item.find_element(*self.INVENTORY_ADDTOCART)
+                add_button.click()
+
+                # Exit once the item is found and clicked
+                return True
+
+        return False

@@ -1,8 +1,9 @@
 import pytest
-
 class TestCart:
 
-    @pytest.mark.demo
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    @pytest.mark.ui
     def test_cart_001(self, cart_page, app_login):
         cart_page.go_to_cart()
         assert cart_page.cart_page_title() == "Your Cart", "Cart page title is either incorrect or missing"
@@ -12,6 +13,13 @@ class TestCart:
         assert cart_page.item_desc_exist(), "Item Description does not exist"
         assert cart_page.qty_label_exist().text == "QTY", "Quantity label does not exist"
         assert cart_page.item_desc_exist().text == "Description", "Item Description does not exist"
+
+
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_cart_002(self, cart_page, inventory_page, app_login):
+        inventory_page.add_item_to_cart('Jacket')
+
 
 
 
