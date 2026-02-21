@@ -9,6 +9,7 @@ from src.utils.waits import wait_clickable
 
 class InventoryPage(BasePage):
     # LOCATORS
+    INVENTORY_URL = "https://www.saucedemo.com/inventory.html"
     PAGE_TITLE = (By.CLASS_NAME, "app_logo")
     CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
     FILTER_DROPDOWN = (By.CLASS_NAME, "product_sort_container")
@@ -221,6 +222,8 @@ class InventoryPage(BasePage):
 
     def add_item_to_cart(self, item_name):
         """Searches for an item by name and adds it to the cart using Case-Insensitive Regex."""
+        # navigate to Inventory page
+        self.navigate_url(self.INVENTORY_URL)
         items = self.get_inventory_items()
 
         # Create a case-insensitive regex pattern
@@ -236,6 +239,11 @@ class InventoryPage(BasePage):
             if pattern.search(actual_name):
                 # 3. Locate and click the button specifically for THIS item
                 add_button = item.find_element(*self.INVENTORY_ADDTOCART)
+
+                # click only if the item is not already added
+                if add_button.text.strip() != "Add to cart":
+                    # print(f"{actual_name} item already present in cart")
+                    return False
                 add_button.click()
 
                 # Exit once the item is found and clicked
