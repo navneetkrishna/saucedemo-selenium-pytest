@@ -1,4 +1,6 @@
 import pytest
+
+
 class TestCart:
 
     @pytest.mark.smoke
@@ -21,5 +23,13 @@ class TestCart:
         inventory_page.add_item_to_cart('Jacket')
 
 
+    @pytest.mark.smoke
+    @pytest.mark.regression
+    def test_cart_003(self, inventory_page, cart_page, app_login):
 
+        # precondition: Add items to cart (jacket/bike light)
+        inventory_page.add_item_to_cart('Jacket')
+        inventory_page.add_item_to_cart('Bike')
 
+        # remove Jacket from the cart
+        assert cart_page.remove_item_from_cart('Jacket'), "Either item does not exist or remove item from cart failed"
