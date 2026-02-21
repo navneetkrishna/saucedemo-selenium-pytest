@@ -38,8 +38,12 @@ class PDPPage(BasePage):
         return float(self.get_product_price().replace("$", ""))
 
     def is_image_displayed(self) -> bool:
+        """get_attribute("src") returns a string or None,
+        and the return type annotation promises a bool"""
         el = self.ele_visible(*self.PRODUCT_IMAGE)
-        return bool(el) and bool(el.get_attribute("src"))
+        if not el:
+            return False
+        return bool(el.get_attribute("src"))
 
     def get_add_remove_btn_text(self) -> str:
         el = self.ele_exists(self.ADD_REMOVE_BTN)
