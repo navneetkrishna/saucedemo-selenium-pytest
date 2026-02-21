@@ -1,4 +1,6 @@
 import re
+from os import name
+
 from selenium.webdriver.common.by import By
 from src.pages.base_page import BasePage
 
@@ -51,6 +53,7 @@ class CartPage(BasePage):
     def cart_items(self):
         return self.elements_exists(self.CART_ITEMS)
 
+
     def remove_item_from_cart(self, item_name):
         """Searches for an item by name
          and removes it from the cart (if exists)
@@ -58,7 +61,6 @@ class CartPage(BasePage):
 
          - returns False, if the searched item does not exist"""
 
-        self.go_to_cart()
         items = self.cart_items()
 
         # Create a case-insensitive regex pattern
@@ -80,3 +82,11 @@ class CartPage(BasePage):
                 return True
 
         return False
+
+
+    def get_cart_item_names(self):
+
+        return [
+            item.find_element(*self.ITEM_NAME).text
+            for item in self.cart_items()
+        ]

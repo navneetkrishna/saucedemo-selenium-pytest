@@ -25,6 +25,10 @@ class InventoryPage(BasePage):
     INVENTORY_ADDTOCART = (By.XPATH, ".//button[contains(@id, 'add-to-cart') or contains(@id, 'remove')]")
 
 
+    def open(self):
+        self.driver.get(self.INVENTORY_URL)
+        return self
+
     def get_page_logo_text(self):
         return self.ele_text(*self.PAGE_TITLE)
 
@@ -223,7 +227,7 @@ class InventoryPage(BasePage):
     def add_item_to_cart(self, item_name):
         """Searches for an item by name and adds it to the cart using Case-Insensitive Regex."""
         # navigate to Inventory page
-        self.navigate_url(self.INVENTORY_URL)
+        # self.navigate_url(self.INVENTORY_URL)
         items = self.get_inventory_items()
 
         # Create a case-insensitive regex pattern
