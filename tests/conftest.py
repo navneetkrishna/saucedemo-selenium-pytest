@@ -1,62 +1,95 @@
 import pytest
 from selenium import webdriver
+from src.config import BASE_URL, STANDARD_USER, STANDARD_PASSWORD
 from src.pages.cart_page import CartPage
-from src.pages.login_page import LoginPage
+from src.pages.checkout_page import CheckoutPage
 from src.pages.inventory_page import InventoryPage
+from src.pages.login_page import LoginPage
+from src.pages.nav_page import NavPage
+from src.pages.pdp_page import PDPPage
 
 
 def pytest_addoption(parser):
-    parser.addoption("--browser", action="store", default="edge", help="Browser: chrome or edge")
-    parser.addoption("--base-url", action="store", default="https://www.saucedemo.com", help="Application URL")
+    parser.addoption(
+        "--browser", action="store", default="edge", help="Browser: chrome or edge"
+    )
+    parser.addoption(
+        "--base-url", action="store", default=BASE_URL, help="Application base URL"
+    )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def base_url(pytestconfig):
-    """Returns the base URL from CLI or default."""
     return pytestconfig.getoption("base_url")
 
 
-# modify scope to "session" if there is just one test suite
 @pytest.fixture(scope="module")
 def driver(pytestconfig, base_url):
     browser_name = pytestconfig.getoption("browser").lower()
 
     if browser_name == "chrome":
-        driver = webdriver.Chrome()
+        _driver = webdriver.Chrome()
     elif browser_name == "edge":
-        driver = webdriver.Edge()
+        _driver = webdriver.Edge()
     else:
-        # Raise an error immediately if the browser is invalid
-        raise pytest.UsageError(f"--browser '{browser_name}' is not supported. Use 'chrome' or 'edge'.")
+        raise pytest.UsageError(
+            f"--browser '{browser_name}' is not supported. Use 'chrome' or 'edge'."
+        )
 
-    driver.maximize_window()
+    _driver.maximize_window()
+    _driver.get(base_url)
 
-    if base_url:
-        driver.get(base_url)
-
-    yield driver
-    driver.quit()
+    yield _driver
+    _driver.quit()
 
 
-@pytest.fixture(scope='module')
+# ------------------------------------------------------------------
+# Page object fixtures
+# ------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
 def login_page(driver):
     return LoginPage(driver)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def inventory_page(driver):
     return InventoryPage(driver)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def cart_page(driver):
     return CartPage(driver)
 
 
-@pytest.fixture(scope='function')
-def app_login(driver, login_page):
-    username = "standard_user"
-    password = "secret_sauce"
+@pytest.fixture(scope="module")
+def pdp_page(driver):
+    return PDPPage(driver)
 
-    login_page.login(username=username, password=password)
+
+@pytest.fixture(scope="module")
+def checkout_page(driver):
+    return CheckoutPage(driver)
+
+
+@pytest.fixture(scope="module")
+def nav_page(driver):
+    return NavPage(driver)
+
+
+@pytest.fixture(scope="function")
+def app_login(login_page):
+    """Log in before a test and log out cleanly after."""
+    login_page.login(username=STANDARD_USER, password=STANDARD_PASSWORD)
     yield
+    login_page.log_out()
+
+
+@pytest.fixture(scope="function")
+def clean_cart(cart_page, app_login):
+    """Log in and guarantee an empty cart before and after the test."""
+    cart_page.go_to_cart()
+    cart_page.clear_cart()
+    yield
+    cart_page.go_to_cart()
+    cart_page.clear_cart()

@@ -1,256 +1,242 @@
-from typing import Literal
-from selenium.common.exceptions import *
-from selenium.webdriver.support.wait import WebDriverWait
-from src.pages.base_page import BasePage
-from selenium.webdriver.common.by import By
 import re
-from src.utils.waits import wait_clickable
+from typing import Literal
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from src.config import INVENTORY_URL
+from src.pages.base_page import BasePage
 
 
 class InventoryPage(BasePage):
-    # LOCATORS
-    INVENTORY_URL = "https://www.saucedemo.com/inventory.html"
-    PAGE_TITLE = (By.CLASS_NAME, "app_logo")
-    CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
+
+    INVENTORY_URL = INVENTORY_URL
+
+    # Locators
+    PAGE_TITLE      = (By.CLASS_NAME, "app_logo")
+    CART_LINK       = (By.CLASS_NAME, "shopping_cart_link")
+    CART_BADGE      = (By.CLASS_NAME, "shopping_cart_badge")
     FILTER_DROPDOWN = (By.CLASS_NAME, "product_sort_container")
     NAVIGATION_MENU = (By.ID, "react-burger-menu-btn")
-    LOGOUT_BTN = (By.ID, "logout_sidebar_link")
-    PRODUCT_TITLE = (By.CLASS_NAME, "title")
+    LOGOUT_BTN      = (By.ID, "logout_sidebar_link")
+    PRODUCT_TITLE   = (By.CLASS_NAME, "title")
 
-    # INVENTORIES
-    INVENTORY_ITEMS = (By.CLASS_NAME, "inventory_item")
-    INVENTORY_IMGS = (By.XPATH, ".//img[@class='inventory_item_img']")
-    INVENTORY_NAMES = (By.CLASS_NAME, "inventory_item_name")
-    INVENTORY_PRICE = (By.CLASS_NAME, "inventory_item_price")
-    INVENTORY_ADDTOCART = (By.XPATH, ".//button[contains(@id, 'add-to-cart') or contains(@id, 'remove')]")
+    # Inventory item child locators
+    INVENTORY_ITEMS   = (By.CLASS_NAME, "inventory_item")
+    INVENTORY_IMGS    = (By.XPATH, ".//img[@class='inventory_item_img']")
+    INVENTORY_NAMES   = (By.CLASS_NAME, "inventory_item_name")
+    INVENTORY_PRICE   = (By.CLASS_NAME, "inventory_item_price")
+    INVENTORY_ADDTOCART = (By.XPATH, ".//button[contains(@id,'add-to-cart') or contains(@id,'remove')]")
 
+    # Filter map shared across the class
+    FILTER_MAP = {
+        "a_z": "Name (A to Z)",
+        "z_a": "Name (Z to A)",
+        "l_h": "Price (low to high)",
+        "h_l": "Price (high to low)",
+    }
 
     def open(self):
-        self.driver.get(self.INVENTORY_URL)
+        self.navigate_url(self.INVENTORY_URL)
         return self
 
-    def get_page_logo_text(self):
+    def get_page_logo_text(self) -> str:
         return self.ele_text(*self.PAGE_TITLE)
 
+    def get_product_title(self) -> str:
+        return self.ele_text(*self.PRODUCT_TITLE)
 
     def click_cart(self):
         self.click(*self.CART_LINK)
 
-    def apply_filter(self, short_filter: Literal["a_z", "z_a", "l_h", "h_l"] = "a_z"):
-        """used typing.Literal lib to show method param suggestion
-            filter: a_z -> Name (A to Z)
-                    z_a -> Name (Z to A)
-                    l_h -> Price (low to high)
-                    h_l -> Price (high to low)
-
-                default: A to Z
-        """
-
-        # 1. Map shorthand codes to the EXACT visible text in the UI
-        filter_map = {
-            "a_z": "Name (A to Z)",
-            "z_a": "Name (Z to A)",
-            "l_h": "Price (low to high)",
-            "h_l": "Price (high to low)"
-        }
-
-        # 2. Get the Select object from your base_page method
-        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
-
-        # 3. Validation
-        target_text = filter_map.get(short_filter.lower())
-        if not target_text:
-            raise ValueError(f"Invalid filter key: {short_filter}. Use: {list(filter_map.keys())}")
-
-            # 4. Perform the action
-        dropdown.select_by_visible_text(target_text)
-
-    def get_inventory_items(self):
-        return self.elements_exists(self.INVENTORY_ITEMS)
-
-
-    def get_inventory_count(self):
-        return len(self.elements_exists(self.INVENTORY_ITEMS))
-
-
-    def get_product_title(self):
-        return self.ele_text(*self.PRODUCT_TITLE)
-
-
     def cart_exists(self):
         return self.ele_visible(*self.CART_LINK)
-
 
     def filter_exists(self):
         return self.ele_visible(*self.FILTER_DROPDOWN)
 
+    def get_inventory_items(self):
+        return self.elements_exists(self.INVENTORY_ITEMS)
 
-    def all_products_have_images(self):
+    def get_inventory_count(self) -> int:
+        return len(self.elements_exists(self.INVENTORY_ITEMS))
 
+    def apply_filter(self, short_filter: Literal["a_z", "z_a", "l_h", "h_l"] = "a_z"):
+        """Select a sort filter by shorthand key.
+
+        Keys:
+            a_z -> Name (A to Z)
+            z_a -> Name (Z to A)
+            l_h -> Price (low to high)
+            h_l -> Price (high to low)
         """
-            Validates that each inventory item has a visible product image.
+        target_text = self.FILTER_MAP.get(short_filter.lower())
+        if not target_text:
+            raise ValueError(
+                f"Invalid filter key: '{short_filter}'. Valid keys: {list(self.FILTER_MAP.keys())}"
+            )
+        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
+        dropdown.select_by_visible_text(target_text)
 
-            Notes:
-            - Avoids global image search to prevent false positives.
-            - Uses scoped search (element.find_element) within each inventory item.
-            - Ensures image is displayed and has a valid src attribute.
-            """
+    def current_filter(self) -> str:
+        """Return the currently selected filter label."""
+        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
+        return dropdown.first_selected_option.text
+
+    def get_cart_badge_count(self) -> int:
+        """Return cart badge number, or 0 if badge is absent."""
+        el = self.ele_exists(self.CART_BADGE)
+        return int(el.text.strip()) if el else 0
+
+    def all_products_have_images(self) -> bool:
+        """Validate that each inventory item has a visible image with a src attribute."""
         items = self.elements_exists(self.INVENTORY_ITEMS)
-
         if not items:
             return False
 
         for item in items:
-            # item scope image search
-            # image = item.find_element(*self.INVENTORY_IMGS)
-            
-            # Pass the parent_ele 'item' instead of 'driver' to restrict XPath scope to .//
-                # - Passing item means the wait will pass that same item as the argument to your callable each poll.
-            # Must ignore NoSuchElementException to prevent immediate crash if element isn't present yet
             image = WebDriverWait(item, 5, ignored_exceptions=[NoSuchElementException]).until(
-                lambda i: i.find_element(*self.INVENTORY_IMGS).is_displayed() and i.find_element(*self.INVENTORY_IMGS))
-
-            if not image.is_displayed():
-                return False
-
-            if not image.get_attribute("src"):
+                lambda i: i.find_element(*self.INVENTORY_IMGS).is_displayed()
+                and i.find_element(*self.INVENTORY_IMGS)
+            )
+            if not image.is_displayed() or not image.get_attribute("src"):
                 return False
 
         return True
 
-
-    def all_products_have_names(self):
-
-        """
-            Validates that each inventory item has a visible and non-empty product name.
-            Note:
-            - Uses scoped search (element.find_element) within each inventory item.
-            """
-
+    def all_products_have_names(self) -> bool:
+        """Validate that each inventory item has a visible, non-empty name."""
         items = self.elements_exists(self.INVENTORY_ITEMS)
-
         if not items:
             return False
 
         for item in items:
             name = item.find_element(*self.INVENTORY_NAMES)
-
-            if not name.is_displayed():
-                return False
-
-            if not name.text.strip():
+            if not name.is_displayed() or not name.text.strip():
                 return False
 
         return True
 
-
-    def all_products_have_prices(self):
-
-        """
-            Validates that each inventory item has a visible and non-empty price.
-            Note:
-            - Uses scoped search (element.find_element) within each inventory item.
-            - Uses regular expression to match price
-            """
-
+    def all_products_have_prices(self) -> bool:
+        """Validate that each inventory item has a visible price matching $X.XX format."""
         items = self.elements_exists(self.INVENTORY_ITEMS)
-
         if not items:
             return False
 
+        price_pattern = re.compile(r"^\$\d+\.\d{2}$")
+
         for item in items:
             price = item.find_element(*self.INVENTORY_PRICE)
-
-            if not price.is_displayed():
+            if not price.is_displayed() or not price.text.strip():
                 return False
-
-            if not price.text.strip():
-                return False
-
-            price_pattern = r"^\$\d+\.\d{2}$"
-            if not re.match(price_pattern, price.text.strip()):
+            if not price_pattern.match(price.text.strip()):
                 return False
 
         return True
 
-
-    def add_to_cart_button_toggle_works(self):
-
-        """
-            Validates that each inventory item has a visible add to cart option.
-            Note:
-            - Uses scoped search (element.find_element) within each inventory item.
-            OR
-                -  # Wait for Add / Remove state
-                    WebDriverWait(self.driver, 5)
-                        .until(lambda d: item.find_element(*self.INVENTORY_ADDTOCART).text.strip() == "Remove"
-        )
-            - Refetches the Add To Cart/Remove button, to avoid stale element exception
-            """
-
+    def add_to_cart_button_toggle_works(self) -> bool:
+        """Validate Add to Cart ↔ Remove button toggle for every inventory item."""
         items = self.elements_exists(self.INVENTORY_ITEMS)
-
         if not items:
             return False
 
         for item in items:
             button = item.find_element(*self.INVENTORY_ADDTOCART)
-
-            # Initial state
             if button.text.strip() != "Add to cart":
                 return False
-            # Click → should change to Remove
-            button.click()
 
-            # refetch the button
+            button.click()
             remove_button = item.find_element(*self.INVENTORY_ADDTOCART)
             if remove_button.text.strip() != "Remove":
                 return False
-            # Click again → should revert back
+
             remove_button.click()
-
-
-            # refetch the button
             add_button = item.find_element(*self.INVENTORY_ADDTOCART)
             if add_button.text.strip() != "Add to cart":
                 return False
 
         return True
 
+    def add_item_to_cart(self, item_name: str) -> bool:
+        """Find an item by name (case-insensitive) and add it to the cart.
 
-    def current_filter(self):
-        # Returns the default filter object or raises the Exception from base_page
-        dropdown = self.dropdowns(self.FILTER_DROPDOWN)
-        return dropdown.first_selected_option.text
-
-
-    def add_item_to_cart(self, item_name):
-        """Searches for an item by name and adds it to the cart using Case-Insensitive Regex."""
-        # navigate to Inventory page
-        # self.navigate_url(self.INVENTORY_URL)
+        Returns:
+            True  — item found and added.
+            False — item already in cart or not found.
+        """
         items = self.get_inventory_items()
-
-        # Create a case-insensitive regex pattern
-        # re.escape handles special characters in item_name safely
         pattern = re.compile(re.escape(item_name), re.IGNORECASE)
 
         for item in items:
-            # 1. Get the name of the current item
             name_element = item.find_element(*self.INVENTORY_NAMES)
-            actual_name = name_element.text
-
-            # 2. Use regex for a flexible, case-insensitive match
-            if pattern.search(actual_name):
-                # 3. Locate and click the button specifically for THIS item
+            if pattern.search(name_element.text):
                 add_button = item.find_element(*self.INVENTORY_ADDTOCART)
-
-                # click only if the item is not already added
                 if add_button.text.strip() != "Add to cart":
-                    # print(f"{actual_name} item already present in cart")
                     return False
                 add_button.click()
-
-                # Exit once the item is found and clicked
                 return True
 
         return False
+
+    def get_item_button_text(self, item_name: str) -> str:
+        """Return the Add/Remove button text for a specific item by name."""
+        items = self.get_inventory_items()
+        pattern = re.compile(re.escape(item_name), re.IGNORECASE)
+
+        for item in items:
+            name_element = item.find_element(*self.INVENTORY_NAMES)
+            if pattern.search(name_element.text):
+                btn = item.find_element(*self.INVENTORY_ADDTOCART)
+                return btn.text.strip()
+
+        return ""
+
+    def click_item_name(self, item_name: str) -> bool:
+        """Click a product name link to navigate to its PDP.
+
+        Returns True if the item was found and clicked, False otherwise.
+        """
+        items = self.get_inventory_items()
+        pattern = re.compile(re.escape(item_name), re.IGNORECASE)
+
+        for item in items:
+            name_element = item.find_element(*self.INVENTORY_NAMES)
+            if pattern.search(name_element.text):
+                name_element.click()
+                return True
+
+        return False
+
+    def get_item_price(self, item_name: str) -> str:
+        """Return the raw price string (e.g. '$9.99') for a named item."""
+        items = self.get_inventory_items()
+        pattern = re.compile(re.escape(item_name), re.IGNORECASE)
+
+        for item in items:
+            name_element = item.find_element(*self.INVENTORY_NAMES)
+            if pattern.search(name_element.text):
+                return item.find_element(*self.INVENTORY_PRICE).text.strip()
+
+        return ""
+
+    def get_product_names(self) -> list[str]:
+        """Return a list of all displayed product names."""
+        items = self.elements_exists(self.INVENTORY_ITEMS)
+        return [item.find_element(*self.INVENTORY_NAMES).text for item in items]
+
+    def get_product_prices(self) -> list[float]:
+        """Return a list of all displayed product prices as floats."""
+        items = self.elements_exists(self.INVENTORY_ITEMS)
+        return [
+            float(item.find_element(*self.INVENTORY_PRICE).text.replace("$", ""))
+            for item in items
+        ]
+
+    def all_buttons_say_add_to_cart(self) -> bool:
+        """Return True if every inventory item button reads 'Add to cart'."""
+        items = self.get_inventory_items()
+        if not items:
+            return False
+        return all(
+            item.find_element(*self.INVENTORY_ADDTOCART).text.strip() == "Add to cart"
+            for item in items
+        )
